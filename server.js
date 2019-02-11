@@ -10,6 +10,11 @@ var app = express();
 var cors = require('cors');
 app.use(cors({optionSuccessStatus: 200}));  // some legacy browsers choke on 204
 
+app.use((req, res, next) => {
+  console.log(`${req.method}  ${req.path}  ${JSON.stringify(req.headers)}`)
+  next()
+})
+
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
 
@@ -24,7 +29,11 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
-
+app.get('/api/whoami', (req, res, next) => {
+  let ips = req.headers["x-forwarded-for"].split(","), ip = ips[0], software = req.headers["user-agent"], language = req.headers['accept-language']
+  ips.reverse().forEach(v => ip = /^(\d{1,3}\.){3}\d{1,3}$/.test(v)? v:ip)
+  res.json({ipaddress: ip, language, software})
+})
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
